@@ -1,0 +1,13 @@
+<html>
+    <head>
+        {% if title %}
+        <title>{{ title }}</title>
+        {% else %}
+        <title>Scorecard development page</title>
+        {% endif %}
+    </head>
+    <body>
+        <div>Scorecard: <a href="/loaddata">Home</a></div>
+        {% block content %}{% endblock %}
+    </body>
+</html>

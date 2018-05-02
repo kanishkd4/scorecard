@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Load file</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.file.label }}<br>
+            {{ form.file(size=32)}}
+        </p>
+        <p>
+            {{ form.target.label }}<br>
+            {{ form.target(size=32)}}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
