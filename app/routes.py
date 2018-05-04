@@ -1,29 +1,36 @@
-from flask import render_template, redirect, url_for
-from flask_wtf import Form
-from flask_wtf.file import FileField
+
+import os
+from flask import Flask, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
 import pandas as pd
+from flask import send_from_directory
 from app import app
-# from Scorecard import scorecard
 
-class UploadForm(Form):
-    file = StringField(label="'~' separted file path to load", validators=[DataRequired()])
-    target = StringField(label="target", validators=[DataRequired()])
-    submit = SubmitField("Create univariate")
+ALLOWED_EXTENSIONS = set(["txt", "pdf", "png", "jpg", "jpeg", "gif"])
+def allowed_file(filename):
+    return "." in filename and \
+           filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route("/")
-@app.route("/loaddata", methods=["GET", "POST"])
-def load():
-    form = UploadForm()
-    if form.validate_on_submit():
-        base = pd.read_table(form.file, sep="~")
-        score = scorecard(modelbase=base, target=form.target)
-        var_start_list = score.univariate().to_html()
-        # return redirect(url_for("/show_output.html"))
-    return render_template("loaddata.html", title="Load data to create scorecard", form=form)
+@app.route("/", methods=["GET", "POST"])
+def upload_file():
+    if request.method == "POST":
+        # check if the post request has the file part
+        if "file" not in request.files:
+            flash("No file part")
+            return redirect(request.url)
+        file = request.files["file"]
+        # if user does not select file, browser also
+        # submit a empty part without filename
+        if file.filename == "":
+            flash("No selected file")
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            return redirect(url_for("uploaded_file",
+                                    filename=filename))
+    return render_template("loaddata.html")
 
-
-# @app.route("/show_outupt")
-# def show_output(var_start_list):
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return pd.read_table(f"{app.config['UPLOAD_FOLDER']}/{filename}", sep="~").head().to_html()

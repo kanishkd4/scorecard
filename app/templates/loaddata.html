@@ -1,17 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Load file</h1>
-    <form action="" method="post">
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.file.label }}<br>
-            {{ form.file(size=32)}}
-        </p>
-        <p>
-            {{ form.target.label }}<br>
-            {{ form.target(size=32)}}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
+<!doctype html>
+<title>Upload new File</title>
+<h1>Upload new File</h1>
+<form method=post enctype=multipart/form-data>
+  <p><input type=file name=file>
+     <input type=submit value=Upload>
+</form>
 {% endblock %}
