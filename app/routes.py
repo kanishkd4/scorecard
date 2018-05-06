@@ -1,18 +1,27 @@
 
 import os
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request, redirect, url_for, render_template, flash
+from flask_wtf import FlaskForm
 from werkzeug.utils import secure_filename
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
 import pandas as pd
 from flask import send_from_directory
 from app import app
+from app.Scorecard import scorecard
 
-ALLOWED_EXTENSIONS = set(["txt", "pdf", "png", "jpg", "jpeg", "gif"])
+ALLOWED_EXTENSIONS = set(["txt"])
 def allowed_file(filename):
     return "." in filename and \
            filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+class TargetForm(FlaskForm):
+    target = StringField(label="target", validators=[DataRequired()])
+    submit = SubmitField("submit")
+
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
+    form = TargetForm()
     if request.method == "POST":
         # check if the post request has the file part
         if "file" not in request.files:
@@ -28,9 +37,12 @@ def upload_file():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
             return redirect(url_for("uploaded_file",
-                                    filename=filename))
-    return render_template("loaddata.html")
+                                    filename=filename, y=form.target.data))
+    return render_template("loaddata.html", form=form)
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
-    return pd.read_table(f"{app.config['UPLOAD_FOLDER']}/{filename}", sep="~").head().to_html()
+    base = pd.read_table(f"{app.config['UPLOAD_FOLDER']}/{filename}", sep="~")
+    score = scorecard(modelBase=base, target="y")
+    score.univariate()
+    return score.var_start_list.to_html()

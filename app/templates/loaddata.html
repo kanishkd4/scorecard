@@ -8,4 +8,11 @@
   <p><input type=file name=file>
      <input type=submit value=Upload>
 </form>
+<form action=post method=post>
+  <p>
+    {{ form.target.label }}<br>
+    {{ form.target(size=32) }}
+  </p>
+  <p>{{ form.submit() }}</p>
+</form>
 {% endblock %}
